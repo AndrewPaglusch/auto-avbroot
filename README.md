@@ -25,6 +25,17 @@ The following assumptions are made. This script won't work if they're not true:
 - You've [generated keys/certs for avbroot](https://github.com/chenxiaolong/avbroot#generating-keys) and their names match what's configured in the script
 - You have a `./htdocs` directory (or a symlink to one) that's public to the internet
 
+# Room for Improvement
+
+The following are things that could be added to improve the efficiency and security of this script:
+- Verify signature of all downloaded files where applicable
+- Verify versions of avbroot, custota-tool, and Magisk so we only download the latest release if needed
+- Verify latest OTA is newer than the one we have on disk (if one exists) before proceeding
+- Convert all hard-coded config values to command-line arguments or environment variables, while keeping sane defaults
+- Add an option of passing in a _key file_ that will be used to auto-answer password prompts (not very secure)
+
+Please submit a pull request if you've implemented any of the above.
+
 # Usage
 
 **Cleanup**
