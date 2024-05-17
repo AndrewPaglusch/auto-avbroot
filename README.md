@@ -29,6 +29,8 @@ The following assumptions are made. This script won't work if they're not true:
 
 The following are things that could be added to improve the efficiency and security of this script:
 - Verify signature of all downloaded files where applicable
+- Wrap this up in a Docker image with an embedded static web server.
+  - Add a cron job to check to OTA updates and download/sign them automatically.
 - Verify versions of avbroot, custota-tool, and Magisk so we only download the latest release if needed
 - Verify latest OTA is newer than the one we have on disk (if one exists) before proceeding
 - Convert all hard-coded config values to command-line arguments or environment variables, while keeping sane defaults
