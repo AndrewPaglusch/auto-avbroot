@@ -39,6 +39,7 @@ Finished
 ```
 
 **Configure Script**
+
 Open the script in a text editor and change the settings under the `device-specific` section.
 Make sure to [use the correct value](https://github.com/chenxiaolong/avbroot/blob/master/README.md#magisk-preinit-device) for `magisk_preinit_device` or you could run into problems!
 
