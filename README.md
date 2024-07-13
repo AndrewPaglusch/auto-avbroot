@@ -5,7 +5,7 @@ The purpose of this tool is to make installing OTA updates on GrapheneOS with [a
 This tool does the following:
 1) Downloads the latest avbroot, custota-tool, and Magisk APK
 2) Downloads the latest OTA update of GrapheneOS for your phone
-3) Uses `avbroot` to patch/re-sign the OTA with your custom key/certs (located in the `./keys` directory)
+3) Uses `avbroot` to patch/re-sign the OTA with your custom key/certs (located in the `./keys` directory by default)
 4) Uses `custota-tool` to generate a `<devicename>.json` and `ota.zip.csig` file
 5) Copies the `ota.zip` (avbroot-patched OTA), `<devicename>.json`, and `ota.zip.csig` file to a publicly-accessible directory
 
@@ -22,8 +22,9 @@ This tool **does not** do the following:
 The following assumptions are made. This script won't work if they're not true:
 - Your phone is rooted
 - GrapheneOS is installed already
-- You've [generated keys/certs for avbroot](https://github.com/chenxiaolong/avbroot#generating-keys) and their names match what's configured in the script
-- You have a `./htdocs` directory (or a symlink to one) that's public to the internet
+- You already know your [magisk preinit device](https://github.com/chenxiaolong/avbroot/blob/master/README.md#magisk-preinit-device) name
+- You've [generated keys/certs for avbroot](https://github.com/chenxiaolong/avbroot#generating-keys)
+- You have a public web directory that generated files can be dropped to (`--output-path`)
 
 # Room for Improvement
 
@@ -33,81 +34,75 @@ The following are things that could be added to improve the efficiency and secur
   - Add a cron job to check to OTA updates and download/sign them automatically.
 - Verify versions of avbroot, custota-tool, and Magisk so we only download the latest release if needed
 - Verify latest OTA is newer than the one we have on disk (if one exists) before proceeding
-- Convert all hard-coded config values to command-line arguments or environment variables, while keeping sane defaults
-- Add an option of passing in a _key file_ that will be used to auto-answer password prompts (not very secure)
 
 Please submit a pull request if you've implemented any of the above.
 
 # Usage
 
-**Cleanup**
+**Arguments**
+NOTE: You can export `PASSWORD` as an environment variable instead of interactively providing it
 ```
-./cleanup.sh
-Cleaning up...
-removed 'temp/ota.factory.zip'
-removed 'htdocs/graphene_husky_ota/husky.json'
-removed 'htdocs/graphene_husky_ota/ota.zip'
-removed 'htdocs/graphene_husky_ota/ota.zip.csig'
-Finished
+./generate-ota.py
+usage: generate-ota.py [-h] --device-codename DEVICE_CODENAME
+                       --magisk-preinit-device MAGISK_PREINIT_DEVICE
+                       [--ota-key-path OTA_KEY_PATH]
+                       [--ota-cert-path OTA_CERT_PATH]
+                       [--avb-key-path AVB_KEY_PATH] [--temp-path TEMP_PATH]
+                       --output-path OUTPUT_PATH
+generate-ota.py: error: the following arguments are required: --device-codename, --magisk-preinit-device, --output-path
 ```
-
-**Configure Script**
-
-Open the script in a text editor and change the settings under the `device-specific` section.
-Make sure to [use the correct value](https://github.com/chenxiaolong/avbroot/blob/master/README.md#magisk-preinit-device) for `magisk_preinit_device` or you could run into problems!
 
 **Generate the OTA**
 ```
-./generate-ota.py
-2024-05-17 00:29:43,476 Fetching the latest custota-tool release URL from GitHub...
-2024-05-17 00:29:43,795 Downloading latest custota-tool release...
-2024-05-17 00:29:44,398 Latest custota-tool downloaded successfully.
-2024-05-17 00:29:44,398 Fetching the latest avbroot release URL from GitHub...
-2024-05-17 00:29:44,655 Downloading latest avbroot release...
-2024-05-17 00:29:45,356 Latest avbroot downloaded successfully.
-2024-05-17 00:29:45,356 Fetching the latest Magisk release URL from GitHub...
-2024-05-17 00:29:45,611 Downloading latest Magisk release...
-2024-05-17 00:29:46,363 Latest Magisk APK downloaded successfully.
-2024-05-17 00:29:46,365 Fetching the latest OTA URL from GrapheneOS...
-2024-05-17 00:29:46,651 Found latest OTA URL: https://releases.grapheneos.org/husky-ota_update-2024051500.zip. Downloading to temp/ota.factory.zip...
-2024-05-17 00:30:28,636 Latest OTA downloaded successfully.
-2024-05-17 00:30:28,735 Re-signing OTA at temp/ota.factory.zip with custom key. Saving to temp/ota.patched.zip...
-Enter passphrase for "keys/avb.key":
-Enter passphrase for "keys/ota.key":
-  7.925s  INFO Replacing zip entry: META-INF/com/android/otacert
-  7.925s  INFO Copying zip entry: apex_info.pb
-  7.925s  INFO Copying zip entry: care_map.pb
-  7.925s  INFO Patching zip entry: payload.bin
-  7.926s  INFO Extracting from original payload: init_boot
-  8.059s  INFO Extracting from original payload: system
- 17.184s  INFO Extracting from original payload: vbmeta
- 17.185s  INFO Extracting from original payload: vendor_boot
- 17.622s  INFO Extracting from original payload: boot
- 18.222s  INFO Patching boot images: boot, init_boot, vendor_boot
- 20.877s  INFO Patching system image: system
- 25.377s  INFO Patched otacerts.zip offsets in system: [581902336..581904296]
- 25.377s  INFO Patching vbmeta images: vbmeta
- 25.409s  INFO Compressing full image: init_boot
- 25.836s  INFO Compressing full image: vbmeta
- 25.837s  INFO Compressing full image: vendor_boot
- 27.783s  INFO Compressing partial image: system: [581902336..581904296, 1187856384..1206686528, 1206984640..1206984704]
- 34.219s  INFO Generating new OTA payload
- 58.974s  INFO Patching zip entry: payload_properties.txt
- 58.974s  INFO Generating new OTA metadata
- 58.994s  INFO Verifying metadata offsets
- 58.999s  INFO Successfully patched OTA
-2024-05-17 00:31:27,769 OTA re-signing completed successfully.
-2024-05-17 00:31:27,778 Generating csig file from patched OTA at htdocs/graphene_husky_ota/ota.zip using key at keys/ota.key and cert at keys/ota.crt. Saving to htdocs/graphene_husky_ota/ota.zip.csig...
-Enter passphrase for "keys/ota.key":
+./generate-ota.py --device-codename husky --magisk-preinit-device sda10 --output-path htdocs/graphene_husky_ota
+Enter password:
+2024-07-12 21:35:08,854 Fetching the latest custota-tool release URL from GitHub...
+2024-07-12 21:35:09,096 Downloading latest custota-tool release...
+2024-07-12 21:35:09,708 Latest custota-tool downloaded successfully.
+2024-07-12 21:35:09,708 Fetching the latest avbroot release URL from GitHub...
+2024-07-12 21:35:09,936 Downloading latest avbroot release...
+2024-07-12 21:35:10,570 Latest avbroot downloaded successfully.
+2024-07-12 21:35:10,570 Fetching the latest Magisk release URL from GitHub...
+2024-07-12 21:35:10,797 Downloading latest Magisk release...
+2024-07-12 21:35:11,493 Latest Magisk APK downloaded successfully.
+2024-07-12 21:35:11,494 Fetching the latest OTA URL from GrapheneOS...
+2024-07-12 21:35:11,754 Found latest OTA URL: https://releases.grapheneos.org/husky-ota_update-2024071200.zip
+2024-07-12 21:35:11,774 Downloading the latest OTA to temp/husky_ota.factory.zip...
+2024-07-12 21:35:30,412 Latest OTA downloaded successfully.
+2024-07-12 21:35:30,413 Re-signing OTA at temp/husky_ota.factory.zip with custom key. Saving to temp/husky_ota.patched.zip...
+  0.119s  INFO Replacing zip entry: META-INF/com/android/otacert
+  0.119s  INFO Copying zip entry: apex_info.pb
+  0.119s  INFO Copying zip entry: care_map.pb
+  0.119s  INFO Patching zip entry: payload.bin
+  0.119s  INFO Extracting from original payload: system
+  6.721s  INFO Extracting from original payload: vbmeta
+  6.722s  INFO Extracting from original payload: boot
+  7.015s  INFO Extracting from original payload: init_boot
+  7.094s  INFO Extracting from original payload: vendor_boot
+  7.428s  INFO Patching boot images: boot, init_boot, vendor_boot
+  9.995s  INFO Patching system image: system
+ 15.064s  INFO Patched otacerts.zip offsets in system: [599113728..599115688]
+ 15.064s  INFO Patching vbmeta images: vbmeta
+ 15.086s  INFO Compressing full image: vbmeta
+ 15.086s  INFO Compressing full image: vendor_boot
+ 16.635s  INFO Compressing full image: init_boot
+ 17.019s  INFO Compressing partial image: system: [599113728..599115688, 1241772032..1261454144, 1261764544..1261764608]
+ 23.947s  INFO Generating new OTA payload
+ 48.178s  INFO Patching zip entry: payload_properties.txt
+ 48.178s  INFO Generating new OTA metadata
+ 48.197s  INFO Verifying metadata offsets
+ 48.203s  INFO Successfully patched OTA
+2024-07-12 21:36:18,642 OTA re-signing completed successfully.
+2024-07-12 21:36:18,675 Generating csig file from patched OTA at htdocs/graphene_husky_ota/ota.zip using key at keys/ota.key and cert at keys/ota.crt. Saving to htdocs/graphene_husky_ota/ota.zip.csig...
 Verifying OTA signature...
 Device name: husky
-Fingerprint: google/husky/husky:14/AP1A.240505.005/2024051500:user/release-keys
-Security patch: 2024-05-05
+Fingerprint: google/husky/husky:14/AP2A.240705.005/2024071200:user/release-keys
+Security patch: 2024-07-05
 Wrote: "htdocs/graphene_husky_ota/ota.zip.csig"
-2024-05-17 00:31:43,642 Csig file generated.
-2024-05-17 00:31:43,643 Generating update info JSON from htdocs/graphene_husky_ota/ota.zip and saving to htdocs/graphene_husky_ota/husky.json...
+2024-07-12 21:36:30,752 Csig file generated.
+2024-07-12 21:36:30,753 Generating update info JSON from htdocs/graphene_husky_ota/ota.zip and saving to htdocs/graphene_husky_ota/husky.json...
 Updated: "htdocs/graphene_husky_ota/husky.json"
-2024-05-17 00:31:43,647 Update info JSON generated.
+2024-07-12 21:36:30,758 Update info JSON generated.
 ```
 
 # Example Docker Compose File
