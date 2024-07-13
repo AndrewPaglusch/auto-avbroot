@@ -40,6 +40,7 @@ Please submit a pull request if you've implemented any of the above.
 # Usage
 
 **Arguments**
+
 NOTE: You can export `PASSWORD` as an environment variable instead of interactively providing it
 ```
 ./generate-ota.py
