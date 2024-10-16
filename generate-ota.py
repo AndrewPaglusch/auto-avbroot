@@ -59,7 +59,7 @@ class Settings:
         self.avbroot_zip_file_regex = 'avbroot'
 
         self.magiskapk_gh_repo = 'topjohnwu/Magisk'
-        self.magiskapk_asset_regex = 'Magisk-v.*\.apk'
+        self.magiskapk_asset_regex = 'app-release.apk'
 
     def _get_password(self):
         password = os.environ.get("PASSWORD")
@@ -104,7 +104,7 @@ def get_latest_gh_release_url(repo, asset_regex):
         if re.match(asset_regex, asset['name']):
             return asset['browser_download_url']
 
-    raise ValueError("No file matching provided regex \"{asset_regex\" found in latest release assets")
+    raise ValueError(f"No file matching provided regex \"{asset_regex}\" found in latest release assets")
 
 def download_and_extract_file(zip_url, out_file_path, file_regex=None):
     logging.debug(f"Downloading file from GitHub to memory: {zip_url}...")
